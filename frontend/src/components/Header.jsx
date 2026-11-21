@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+import { api } from "../services/api";
 import { useTheme } from "../context/ThemeContext";
 import CalendarWidget from "./CalendarWidget";
 import ThesisRoadmap from "./ThesisRoadmap";
 import StudyPlanProgress from "./StudyPlanProgress";
 import StudentRecord from "./StudentRecord";
+import { openMap } from "../utils/mapLinks";
 import styles from "./Header.module.css";
 
 const SunIcon = () => (
@@ -50,6 +52,13 @@ export default function Header({ onAsk, busy }) {
   const { isDark, toggleTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
+  // Simulated student record (demo accounts); null for normal accounts
+  const [record, setRecord] = useState(null);
+
+  useEffect(() => {
+    if (!user) { setRecord(null); return; }
+    api.getMyRecord().then(setRecord).catch(() => setRecord(null));
+  }, [user]);
 
   useEffect(() => {
     function onOutside(e) {
@@ -69,9 +78,16 @@ export default function Header({ onAsk, busy }) {
   return (
     <header className={styles.header}>
       <div className={styles.right}>
-        <StudentRecord onAsk={onAsk} disabled={busy} />
+        {record && <StudentRecord record={record} onAsk={onAsk} disabled={busy} />}
         <StudyPlanProgress onAsk={onAsk} disabled={busy} />
-        <ThesisRoadmap onAsk={onAsk} disabled={busy} />
+        {/* The Thesis Roadmap is for Master's students: hidden when the record says Bachelor's */}
+        {record?.level !== "bachelors" && <ThesisRoadmap onAsk={onAsk} disabled={busy} />}
+        <button className={styles.mapBtn} onClick={() => openMap("")} title="Campus map" aria-label="Open campus map">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2"
+            strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" /><path d="M9 4v14M15 6v14" />
+          </svg>
+        </button>
         <CalendarWidget />
 
         {/* Theme toggle */}

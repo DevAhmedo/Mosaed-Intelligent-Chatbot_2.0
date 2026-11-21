@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import ChatWindow from "../components/ChatWindow";
+import MapViewer from "../components/MapViewer";
 import ChatInput from "../components/ChatInput";
 import SearchModal from "../components/SearchModal";
 import { api } from "../services/api";
@@ -127,6 +128,8 @@ export default function ChatPage() {
           </div>
         </div>
       </div>
+
+      <MapViewer />
 
       {searchOpen && (
         <SearchModal

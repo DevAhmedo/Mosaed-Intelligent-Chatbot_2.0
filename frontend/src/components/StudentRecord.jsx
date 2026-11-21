@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { api } from "../services/api";
 import styles from "./StudentRecord.module.css";
 
 // "My record": the logged-in student's SIMULATED student record (demo accounts made by
 // backend/seed_students.py). Hidden for accounts without a record. The chatbot's agent
-// reads the same record through its tools.
+// reads the same record through its tools. Header.jsx loads the record and passes it in.
 
 const IdIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
@@ -24,17 +23,12 @@ const QUESTIONS = [
   "What grade do I need this semester to raise my CGPA?",
 ];
 
-export default function StudentRecord({ onAsk, disabled }) {
-  const [record, setRecord] = useState(null);
+export default function StudentRecord({ record, onAsk, disabled }) {
   const [open, setOpen] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
   const [pos, setPos] = useState({ top: 64, right: 16 });
   const wrapperRef = useRef(null);
   const panelRef = useRef(null);
-
-  useEffect(() => {
-    api.getMyRecord().then(setRecord).catch(() => setRecord(null));
-  }, []);
 
   useEffect(() => {
     function onClickOutside(e) {

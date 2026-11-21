@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
+import { loadMapIndex, findMapLinks, openMap } from "../utils/mapLinks";
 import styles from "./MessageBubble.module.css";
 
 // Typewriter speed: 5 chars every 16 ms ≈ ~300 chars/sec, smooth at 60 fps.
@@ -34,6 +35,31 @@ function Sources({ sources }) {
           ))}
         </ol>
       )}
+    </div>
+  );
+}
+
+// "Show on map" buttons for the buildings / A9 rooms an answer mentions.
+function MapLinks({ text }) {
+  const [links, setLinks] = useState([]);
+  useEffect(() => {
+    let alive = true;
+    if (!/\bA(\d|-P)/.test(text || "")) return;
+    loadMapIndex().then((index) => { if (alive) setLinks(findMapLinks(text, index)); });
+    return () => { alive = false; };
+  }, [text]);
+  if (links.length === 0) return null;
+  return (
+    <div className={styles.mapLinks}>
+      {links.map((l) => (
+        <button key={l.label} type="button" className={styles.mapLink} title={l.title} onClick={() => openMap(l.hash)}>
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2"
+            strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" /><circle cx="12" cy="9.5" r="2.5" />
+          </svg>
+          Show {l.label} on map
+        </button>
+      ))}
     </div>
   );
 }
@@ -79,6 +105,7 @@ export default function MessageBubble({ message }) {
             </div>
           )}
         </div>
+        {!isUser && !isTyping && <MapLinks text={message.content} />}
         {!isUser && !isTyping && <Sources sources={message.sources} />}
       </div>
     </div>

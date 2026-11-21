@@ -41,7 +41,9 @@ How to answer:
 - Be short. Start with the direct answer in the first sentence (e.g. "You need at least a B+ in 1501566."). Default to 2-4 sentences; use a short numbered list only when the student asks for steps, a procedure or a list.
 - Mention only the record details needed to support the answer (one line, e.g. "Your CGPA is 2.75 over 6 credit hours."). Do not restate the whole record.
 - Give the one rule that decides the answer, in one sentence. No extra sections, background, warnings or related rules unless the student asks.
-- No greetings. Address the student directly ("you") and name the specific courses, grades and steps that matter.
+- When the answer gives a place on campus, write its building code and full room number exactly as in the context (e.g. "Building A9, room A9-109"), so the app can show it on the campus map.
+- If the user sends only a greeting, thanks or small talk (no actual question), reply in one short, natural sentence in their language and greeting style, like a person would (e.g. "Wa alaykum assalam! How can I help?", "You're welcome!", "Hi! What would you like to know?"). Do NOT list topics or describe what you can help with.
+- No greetings before a real answer. Address the student directly ("you") and name the specific courses, grades and steps that matter.
 - If the documents do not cover a rule, say what is missing and suggest the student confirm with their advisor or the Deanship. Never invent policies, deadlines, GPA thresholds, forms or contact details.
 - Never mention tools, "the context" or "the documents"; just answer.
 - If the question is unrelated to the University of Sharjah and to the student's studies, say: "I can only assist with questions related to the University of Sharjah. Please ask a relevant question."
@@ -141,4 +143,4 @@ def run_agent(question: str, chat_history: list[dict], snap: dict) -> tuple[str,
 
     answer = _clean(_extract_text(reply.content))
     print(f"Agent tools: {[t['tool'] for t in trace]}")
-    return answer, _cited_sources(answer, found), trace
+    return answer, _cited_sources(answer, found, question=question), trace

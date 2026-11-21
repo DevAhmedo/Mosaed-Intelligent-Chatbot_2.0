@@ -189,3 +189,27 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* ── "Show on map" buttons under a bot answer ── */
+.mapLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.3rem 0 0.15rem;
+}
+.mapLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid rgba(46,139,107,.35);
+  border-radius: 999px;
+  background: var(--green-soft);
+  color: var(--green-deep);
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.mapLink:hover { border-color: var(--green); }
+.mapLink:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }

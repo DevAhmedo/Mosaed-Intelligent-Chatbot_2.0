@@ -41,7 +41,8 @@ You assist with any topic that may help them, including:
 Response rules:
 - Answer using only the retrieved context. Do not use outside knowledge.
 - Do NOT add greetings, self-introductions, or pleasantries before your answer. Get straight to the point.
-- If the user sends only a greeting or small talk (no actual question), respond briefly and invite them to ask their question.
+- When the answer gives a place on campus, write its building code and full room number exactly as in the context (e.g. "Building A9, room A9-109"), so the app can show it on the campus map.
+- If the user sends only a greeting, thanks or small talk (no actual question), reply in one short, natural sentence in their language and greeting style, like a person would (e.g. "Wa alaykum assalam! How can I help?", "You're welcome!", "Hi! What would you like to know?"). Do NOT list topics or describe what you can help with.
 - Match the length of your answer to the question: simple factual questions (a single number, name, or requirement) get a single sentence. Only use more detail if the question asks for a process, list, or explanation.
 - Study plans differ by program and level. If the question does not say which program (or Bachelor's vs Master's) and the answer differs between programs, ask which program they mean instead of guessing. If the context contains plans from different catalog years, say which year you used.
 - If a rule differs for undergraduate and graduate students, answer for the level the user asked about; if they did not say, give both or ask.
@@ -182,7 +183,17 @@ _PLAN_LINE = re.compile(r"^\[Study plan:\s*(.+?)\]\s*$")
 _WORD = re.compile(r"[A-Za-z\u0600-\u06FF]{4,}|\d+(?:\.\d+)?")
 _COMMON = set("""that this with from have will your they their what when which there these those about
 into than then them were been being only also must should would could after before during each other
-student students university course courses program programs semester semesters master masters""".split())
+student students university course courses program programs semester semesters master masters
+sharjah here help like question questions answer please hello thank thanks need know""".split())
+# Markdown links "[text](url)" and bare web links, removed from source titles/excerpts
+_MD_LINK = re.compile(r"\[([^\]]*)\]\((?:https?://)[^)]*\)")
+_URL = re.compile(r"https?://\S+")
+
+
+def _strip_links(text: str) -> str:
+    text = _MD_LINK.sub(lambda m: m.group(1), text)
+    text = _URL.sub("", text)
+    return re.sub(r"\s{2,}", " ", text).strip()
 
 
 def _source_info(doc, answer_words: set | None = None) -> dict:
@@ -209,7 +220,11 @@ def _source_info(doc, answer_words: set | None = None) -> dict:
             body = rest
             heading = re.search(r"^#+\s*(.+)$", body, re.M)
             section = heading.group(1).strip() if heading else ""
-    clean = re.sub(r"^#+\s*", "", body, flags=re.M)
+    section = _strip_links(section)
+    if (len(section) > 80 or not re.search(r"[A-Za-z\u0600-\u06FF]{3,}", section)
+            or re.search(r"\S{20,}", section)):
+        section = ""  # headings that were really a long link or form id
+    clean = re.sub(r"^#+\s*", "", _strip_links(body), flags=re.M)
     clean = re.sub(r"[|*_❑•▪●■◆➢✓]+|-{3,}", " ", clean)
     pieces = [re.sub(r"\s+", " ", p).strip() for p in re.split(r"\n+|(?<=[.;])\s+", clean)]
     pieces = [p.lstrip("-–• ").strip() for p in pieces]
@@ -226,22 +241,28 @@ def _source_info(doc, answer_words: set | None = None) -> dict:
     return {"id": doc.metadata.get("id"), "title": title, "section": section, "excerpt": excerpt}
 
 
-def _cited_sources(answer: str, results: list, max_sources: int = 3) -> list:
-    """The retrieved chunks the answer draws on most (shared words and numbers),
-    best match first, one per document section, at most 3. No sources for a refusal."""
+def _cited_sources(answer: str, results: list, max_sources: int = 3, question: str = "") -> list:
+    """The retrieved chunks the answer draws on (shared words and numbers), best match first,
+    one per document section, at most 3. No sources when nothing clearly supports the answer:
+    refusals, greetings / small talk, and answers whose words do not appear in any chunk."""
     if not answer or answer.strip().startswith("I can only assist"):
         return []
     words = lambda t: {w.lower() for w in _WORD.findall(t)} - _COMMON
-    answer_words = words(answer)
-    if not answer_words:
+    # words the answer only repeats from the question are no evidence of a source
+    answer_words = words(answer) - words(question)
+    if len(answer_words) < 5:  # "Hello! What would you like to ask?" and similar
         return []
-    scored = [(doc, len(answer_words & words(doc.page_content)) / len(answer_words)) for doc, _s in results]
+    scored = []
+    for doc, _s in results:
+        shared = answer_words & words(doc.page_content)
+        has_number = any(w[0].isdigit() and len(w) >= 2 for w in shared)
+        share = len(shared) / len(answer_words)
+        # a real source shares several specific words (or a number such as a date or code)
+        if share >= 0.15 and (len(shared) >= 4 or (has_number and len(shared) >= 2)):
+            scored.append((doc, share))
     scored.sort(key=lambda x: -x[1])  # stable: equal matches keep retrieval order
-    used = [doc for doc, share in scored if share >= 0.15]
-    if not used:  # nothing clearly matches: show the two best matches
-        used = [doc for doc, _ in scored[:2]]
     out, seen = [], set()
-    for doc in used:
+    for doc, _share in scored:
         info = _source_info(doc, answer_words)
         key = (info["title"], info["section"])
         if key in seen:
@@ -354,7 +375,7 @@ def query_rag(query_text: str, chat_history: list[dict] | None = None, with_rout
     response_text = generate_answer(SYSTEM_PROMPT, user_prompt_formatted)
 
     # sources = the chunks the answer draws on, as {id, title, section, excerpt}
-    sources = _cited_sources(response_text, results)
+    sources = _cited_sources(response_text, results, question=standalone_query)
     print(f"Response: {response_text}\nSources: {[s['id'] for s in sources]}")
     if with_route:
         return response_text, sources, route
