@@ -35,22 +35,8 @@ async def auth_config():
     return {
         "mode": ms.AUTH_MODE,
         "allowed_domain": ms.ALLOWED_EMAIL_DOMAIN,
-        "mock": ms.mock_enabled(),
         "dev_login": ms.AUTH_DEV_LOGIN,
     }
-
-
-class MockMicrosoftRequest(BaseModel):
-    name: str
-    email: str
-
-
-@router.post("/mock-microsoft")
-async def mock_microsoft(payload: MockMicrosoftRequest):
-    """Stand-in for the Microsoft sign-in page. Disabled unless AUTH_MODE=microsoft and MS_MOCK=true."""
-    if not ms.mock_enabled():
-        raise HTTPException(status_code=404, detail="Not found.")
-    return {"id_token": ms.issue_mock_id_token(payload.name, payload.email)}
 
 
 class MicrosoftLoginRequest(BaseModel):

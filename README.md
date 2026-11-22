@@ -70,13 +70,12 @@ GROQ_API_KEY=your_groq_api_key_here
 
 **Answering model.** `LLM_PROVIDER` picks the model that writes the answers; if it is not set, **DeepSeek** is used, so either add a `DEEPSEEK_API_KEY` (https://platform.deepseek.com, paid) or set `LLM_PROVIDER=gemini` to use the Gemini key for answers too. Groq (https://console.groq.com) is the third option. Embeddings (document search) always use Gemini, so `GEMINI_API_KEY` is needed in every case.
 
-**Sign-in mode.** `AUTH_MODE=microsoft` shows a single "Continue with Microsoft" button and only accepts `@sharjah.ac.ae` emails (`ALLOWED_EMAIL_DOMAIN`). While `MS_MOCK=true` a simulated Microsoft page is used; the real Microsoft app registration is not wired up yet. `AUTH_DEV_LOGIN=true` keeps the email/password login reachable for the demo students. Set `AUTH_MODE=password` (or remove the line) to go back to the original email/password forms, then restart the backend:
+**Sign-in mode.** The app uses the email/password login (`AUTH_MODE=password`, the default). `AUTH_MODE=microsoft` would show a single "Continue with Microsoft" button for `@sharjah.ac.ae` emails (`ALLOWED_EMAIL_DOMAIN`), but the real Microsoft app registration (`MS_TENANT_ID`, `MS_CLIENT_ID`) is not wired up yet, so that button cannot sign anyone in. `AUTH_DEV_LOGIN=true` keeps the email/password login reachable in that mode. Restart the backend after changing these:
 
 ```
-AUTH_MODE=microsoft
+AUTH_MODE=password
 ALLOWED_EMAIL_DOMAIN=sharjah.ac.ae
 AUTH_DEV_LOGIN=true
-MS_MOCK=true
 ```
 
 > Never commit `.env` (it is already in `.gitignore`). Avoid `@ : / #` in the PostgreSQL password, as they break the connection URL.

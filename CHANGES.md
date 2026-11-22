@@ -12,15 +12,16 @@ The work is grouped by feature. Files are listed under the feature they belong t
 A second sign-in mode for university accounts, switched from the backend `.env`.
 
 - **`AUTH_MODE=microsoft`** shows a single "Continue with Microsoft" button and only accepts emails from `ALLOWED_EMAIL_DOMAIN` (default `sharjah.ac.ae`). `AUTH_MODE=password` (or no value) keeps the original email/password screens.
-- **`MS_MOCK=true`** uses a simulated Microsoft page. The real Microsoft app registration (`MS_TENANT_ID`, `MS_CLIENT_ID`) is not wired up yet.
+- The real Microsoft app registration (`MS_TENANT_ID`, `MS_CLIENT_ID`) is not wired up yet, so the button shows "Microsoft sign-in is not configured yet". The app runs with `AUTH_MODE=password`.
+- The earlier simulated Microsoft page (`MS_MOCK`, `/auth/mock-microsoft`) was removed.
 - **`AUTH_DEV_LOGIN=true`** keeps the email/password login reachable for the demo students, behind a link on the Microsoft page.
-- The landing page says "Sign in" and hides "Sign up" in Microsoft mode.
+- In Microsoft mode the Microsoft page replaces the sign-in page.
 
 Files:
-- `backend/services/microsoft_auth.py` (new): checks Microsoft ID tokens and the simulated sign-in.
-- `backend/routers/auth.py`: `GET /auth/config`, `POST /auth/microsoft`, `POST /auth/mock-microsoft`.
-- `frontend/src/pages/MicrosoftLoginPage.jsx` (new), `App.jsx`, `LoginPage.jsx`, `LandingPage.jsx`, `SignUpPage.jsx`, `AuthPage.module.css`, `LandingPage.module.css`.
-- `frontend/src/services/api.js`: `authConfig`, `mockMicrosoft`, `microsoftLogin`.
+- `backend/services/microsoft_auth.py` (new): sign-in mode settings and the student-email rule; token checking waits for the app registration.
+- `backend/routers/auth.py`: `GET /auth/config`, `POST /auth/microsoft`.
+- `frontend/src/pages/MicrosoftLoginPage.jsx` (new), `App.jsx`, `LoginPage.jsx`, `AuthPage.module.css`.
+- `frontend/src/services/api.js`: `authConfig`, `microsoftLogin`.
 - `.env.example`, `README.md`: the new settings are documented.
 
 ## 2. Answering model
@@ -105,7 +106,26 @@ Map itself (`frontend/public/campus-map/campus-map.html`):
 - Office hours and the weekly timetable use coloured fills instead of side stripes.
 - Earlier map work in this range: building A11 floor plans and office directory (`A11-office-directory.json`, `A11-room-mapping.json`), OpenStreetMap surroundings (`surroundings.json`), gender-split washroom colours, room hover, a texture-loading fix for the iPhone app, and an updated model, building data and walking network (`model.json`, `data.json`, `nav.json`).
 
-## 8. Other
+## 8. Sign-in, create account and reset password
+
+The first page is now a sign-in page with a create-account option, and the reset-password page matches it.
+
+- **Background**: a slowly moving colour field in the brand colours (white, black, green `#60B68F`), made of soft layers that drift on their own loops (GPU-only motion, still for reduced motion).
+- **Header**: Mosaed × University of Sharjah logos with a thin "×" between them.
+- **Card**: one frosted-glass card with the Mosaed logo. A "Sign in / Create account" switch changes the form in place: the white highlight slides across, the fields slide in from the chosen side, and the card grows or shrinks smoothly to the new form.
+- **Fields**: light glass fields with a small icon (person, envelope, lock, key); on focus they turn white with a thin black edge. Show/hide password button. Browser autofill no longer paints its blue box.
+- **Create account**: the student email gets a green tick once it matches `U1234567@sharjah.ac.ae`; the password rules show as chips ("8+ characters", "A letter", "A number") that turn green as they are met.
+- **Errors**: a wrong field turns red with a one-line message and shakes once on each press.
+- **Reset password** (`ForgotPasswordPage.jsx`): the same card in three steps (email → code and new password → done), each sliding in from the right. The code field takes digits only.
+- **Signing in**: the card dissolves, then the chat builds itself in once: the sidebar slides in, its sections follow, the logo springs in, the greeting rises word by word, the chat bar slides up and the starter questions pop in (about 1.3 s; a simple fade for reduced motion; not on reload).
+
+Files:
+- `frontend/src/components/AuthKit.jsx/.module.css` (new): the shared page shell, fields, password rules and button for both pages.
+- `frontend/src/pages/LandingPage.jsx`, `ForgotPasswordPage.jsx`, `App.jsx`. `SignUpPage.jsx` and `LandingPage.module.css` were removed (merged into the sign-in page and AuthKit).
+- `frontend/src/utils/entrance.js` (new), `ChatPage.jsx/.module.css`, `Sidebar.jsx`, `ChatWindow.jsx`, `ChatInput.jsx`: the welcome animation.
+- Unused styles removed: `ChatInput.module.css` (`.context*`), `ThesisRoadmap.module.css` (`.trigger*`), `Sidebar.module.css` (`.sessionIcon`), `AuthPage.module.css` (old reset-page styles).
+
+## 9. Other
 
 - `frontend/package-lock.json`: dependency lock refresh.
 - `.env.example`: lists the sign-in and answering-model settings (values are placeholders).
@@ -115,7 +135,8 @@ Map itself (`frontend/public/campus-map/campus-map.html`):
 
 ## Not done yet / known limits
 
-- The real Microsoft app registration is not connected; Microsoft sign-in runs in simulated mode.
+- The real Microsoft app registration is not connected, so Microsoft sign-in does not work yet; the app uses the email/password login.
 - Student records are simulated demo data (`backend/seed_students.py`).
 - Elective lists per program are partly assumed (department code matching); official lists are still needed.
 - On phones the sidebar has to be collapsed by hand.
+- `LoginPage.jsx` and `MicrosoftLoginPage.jsx` (only shown with `AUTH_MODE=microsoft`) still use the older card design.

@@ -102,9 +102,10 @@ export default function Sidebar({
 
   return (
     <SidebarContext.Provider value={{ collapsed }}>
-      <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ""}`}>
+      {/* data-enter / --i: the welcome animation after sign-in (ChatPage.module.css) */}
+      <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ""}`} data-enter="sidebar">
 
-        <div className={styles.top}>
+        <div className={styles.top} data-enter="side-item" style={{ "--i": 0 }}>
           <div className={styles.brand}>
             <img src={logoSrc} alt="" className={styles.brandMark} />
             <span className={styles.brandName}>Mosaed</span>
@@ -119,12 +120,12 @@ export default function Sidebar({
           </button>
         </div>
 
-        <div className={styles.group}>
+        <div className={styles.group} data-enter="side-item" style={{ "--i": 1 }}>
           <NavItem variant="primary" icon={<IconNewChat />} label="New chat" onClick={onNewChat} />
           <NavItem icon={<IconSearch />} label="Search chats" onClick={onSearch} shortcut="Ctrl K" />
         </div>
 
-        <div className={styles.group}>
+        <div className={styles.group} data-enter="side-item" style={{ "--i": 2 }}>
           <span className={styles.groupLabel}>Your studies</span>
           {/* Student record + study plan, as one page in place of the chat */}
           <NavItem
@@ -147,7 +148,7 @@ export default function Sidebar({
           />
         </div>
 
-        <div className={styles.history}>
+        <div className={styles.history} data-enter="side-item" style={{ "--i": 3 }}>
           {sessions.length > 0 && Object.entries(groups).map(([groupName, items]) =>
             items.length === 0 ? null : (
               <div key={groupName} className={styles.historyGroup}>
@@ -170,7 +171,7 @@ export default function Sidebar({
         </div>
 
         {user && (
-          <div className={styles.foot} ref={menuRef}>
+          <div className={styles.foot} ref={menuRef} data-enter="side-item" style={{ "--i": 4 }}>
             {/* Drawn in <body> so the sidebar's rounded, clipped edges cannot cut it off */}
             {menuOpen && menuPos && createPortal(
               <div className={styles.menu} role="menu" ref={menuPanelRef} style={menuPos}>

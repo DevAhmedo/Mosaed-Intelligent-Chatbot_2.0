@@ -8,7 +8,7 @@
   margin: 0 auto;
 }
 
-/* Glass card with two rows: the question, then context + send */
+/* Glass card with two rows: the question, then the send button */
 .form {
   display: flex;
   flex-direction: column;
@@ -62,26 +62,6 @@
   align-items: center;
   justify-content: flex-end;
   gap: 12px;
-}
-
-.context {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  min-width: 0;
-  font-size: 0.76rem;
-  white-space: nowrap;
-}
-
-.contextName {
-  font-weight: 600;
-  color: var(--ink-2);
-}
-
-.contextNote {
-  color: var(--green);
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* Send: a small rounded square. Quiet until there is text, then brand green. */
@@ -144,10 +124,6 @@
   font-size: 0.72rem;
   color: var(--muted);
   text-align: center;
-}
-
-@media (max-width: 640px) {
-  .contextNote { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -5,9 +5,9 @@ import MapPage from "./MapPage";
 import ChatInput from "../components/ChatInput";
 import SearchModal from "../components/SearchModal";
 import SchedulePanel from "../components/SchedulePanel";
-import StudiesPage from "./StudiesPage";
-import { IconStudyPlan, IconThesis, IconCalendar, IconMap, IconClock } from "../components/icons";
+import StudiesPage from "./StudiesPage";import { IconStudyPlan, IconThesis, IconCalendar, IconMap, IconClock } from "../components/icons";
 import { api } from "../services/api";
+import { justSignedIn } from "../utils/entrance";
 import { loadScheduleIndex, asksForSchedule, isFollowUp, findPerson } from "../utils/schedules";
 import styles from "./ChatPage.module.css";
 
@@ -45,6 +45,15 @@ export default function ChatPage() {
   const scheduleTopic = useRef(false);
 
   const isEmpty = messages.length === 0 && !isLoading;
+
+  // Right after sign-in the page builds itself in (sidebar, greeting, chat bar, starters), then the
+  // flag comes off so nothing replays. Not when a saved session opens the app.
+  const [entrance, setEntrance] = useState(justSignedIn);
+  useEffect(() => {
+    if (!entrance) return;
+    const t = setTimeout(() => setEntrance(false), 1900);
+    return () => clearTimeout(t);
+  }, [entrance]);
 
   useEffect(() => {
     const onHash = () => {
@@ -204,8 +213,8 @@ export default function ChatPage() {
 
   return (
     <>
-      <div className={styles.layout}>
-        <div className={styles.bgCanvas} aria-hidden="true">
+      <div className={`${styles.layout} ${entrance ? styles.entrance : ""}`}>
+        <div className={styles.bgCanvas} aria-hidden="true" data-enter="glow">
           <div className={`${styles.blob} ${styles.blob1}`} />
           <div className={`${styles.blob} ${styles.blob2}`} />
         </div>
@@ -233,10 +242,12 @@ export default function ChatPage() {
               <ChatInput onSend={handleSend} disabled={isLoading} showDisclaimer={!isEmpty} />
             </div>
             <div className={`${styles.starters} ${!isEmpty ? styles.startersHidden : ""}`} aria-hidden={!isEmpty}>
-              {STARTERS.map((s) => (
+              {STARTERS.map((s, i) => (
                 <button
                   key={s.title}
                   className={styles.starter}
+                  data-enter="chip"
+                  style={{ "--i": i }}
                   onClick={() => handleSend(s.question)}
                   disabled={isLoading || !isEmpty}
                   tabIndex={isEmpty ? 0 : -1}

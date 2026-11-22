@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import MessageBubble from "./MessageBubble";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
@@ -18,6 +18,7 @@ export default function ChatWindow({ messages, isLoading, isEmpty }) {
   const { user } = useAuth();
   const logo = isDark ? "/mosaed-logo-dark.png" : "/mosaed-logo.png";
   const firstName = user?.name ? user.name.split(" ")[0] : "";
+  const heading = firstName ? `Hey ${firstName}, how can I help you today?` : "How can I help you today?";
 
   // A new message (sent or received) always brings the view down and re-attaches it.
   useEffect(() => {
@@ -55,9 +56,15 @@ export default function ChatWindow({ messages, isLoading, isEmpty }) {
       {/* Landing hero — fades out when messages appear */}
       <div className={`${styles.empty} ${!isEmpty ? styles.emptyHidden : ""}`}
         aria-hidden={!isEmpty}>
-        <img src={logo} alt="Mosaed" className={styles.emptyLogo} />
+        <img src={logo} alt="Mosaed" className={styles.emptyLogo} data-enter="logo" />
+        {/* one span per word, so the welcome animation can bring the words in one after another */}
         <h2 className={styles.emptyHeading}>
-          {firstName ? `Hey ${firstName}, how can I help you today?` : "How can I help you today?"}
+          {heading.split(" ").map((w, i) => (
+            <Fragment key={i}>
+              {i > 0 && " "}
+              <span data-enter="word" style={{ "--i": i }}>{w}</span>
+            </Fragment>
+          ))}
         </h2>
       </div>
 

@@ -2,28 +2,6 @@
   position: relative;
 }
 
-/* ── Trigger button (same look as the calendar button) ── */
-.trigger {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--green-soft);
-  border: 1px solid rgba(96,182,143,.3);
-  color: var(--green);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
-  flex-shrink: 0;
-}
-.trigger:hover,
-.triggerActive {
-  background: rgba(96,182,143,.18);
-  border-color: var(--green);
-  box-shadow: 0 0 0 4px rgba(96,182,143,.1);
-}
-
 /* ── Panel ── */
 .panel {
   position: fixed;   /* drawn in <body>, placed under the button by the component */

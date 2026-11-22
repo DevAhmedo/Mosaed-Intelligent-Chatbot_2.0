@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { IconArrowUp } from "./icons";
 import styles from "./ChatInput.module.css";
 
-// Two-row composer: the question on top, a quiet context line and the send button underneath.
+// Two-row composer: the question on top, the send button underneath.
 export default function ChatInput({ onSend, disabled, showDisclaimer = true }) {
   const [text, setText] = useState("");
   const [focused, setFocused] = useState(false);
@@ -33,7 +33,7 @@ export default function ChatInput({ onSend, disabled, showDisclaimer = true }) {
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.center}>
+      <div className={styles.center} data-enter="composer">
         <form className={styles.form} onSubmit={handleSubmit} data-focused={focused || undefined}>
           <textarea
             ref={textareaRef}

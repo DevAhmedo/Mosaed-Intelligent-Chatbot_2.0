@@ -26,9 +26,6 @@ export const api = {
 
   authConfig: () => request("/auth/config"),
 
-  mockMicrosoft: (name, email) =>
-    request("/auth/mock-microsoft", { method: "POST", body: JSON.stringify({ name, email }) }),
-
   microsoftLogin: (id_token) =>
     request("/auth/microsoft", { method: "POST", body: JSON.stringify({ id_token }) }),
 

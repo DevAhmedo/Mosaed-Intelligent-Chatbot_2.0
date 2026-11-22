@@ -179,17 +179,6 @@
   outline-offset: 1px;
 }
 
-.sessionIcon {
-  display: flex;
-  color: var(--muted);
-  flex-shrink: 0;
-}
-
-.sessionRow:hover .sessionIcon,
-.sessionActive .sessionIcon {
-  color: var(--brand);
-}
-
 .sessionTitle {
   flex: 1;
   min-width: 0;
