@@ -1,9 +1,28 @@
 # Changes
 
-Everything that changed on the `general-scope` branch since the commit
+Everything in this pull request: the `general-scope` branch of the fork, compared with
+`general-scope` in the main repository, which ends at
 "Connect 3D campus map; cleaner sources and greetings; hide roadmap for bachelor's students" (`6bc3a32`).
 
-The work is grouped by feature. Files are listed under the feature they belong to.
+Two commits:
+- `c2d46a6` Add My degree page, map page, calendar redesign and Microsoft sign-in
+- `0a943b6` Redesign sign-in, create account and reset password; welcome animation
+
+The work is grouped by feature (sections 1–9). Files are listed under the feature they belong to.
+The answering pipeline (retrieval, prompts, agent tools other than the study-plan additions in
+section 5) is unchanged.
+
+## Summary
+
+| Area | What changed |
+|---|---|
+| Sign-in | New glass sign-in page with create account, matching reset-password page, welcome animation after signing in (section 8). Optional Microsoft sign-in mode, not connected yet (section 1). |
+| Chat screen | Redesigned layout, floating glass sidebar, new chat bar, answer cards, starter questions (section 3). |
+| Instructor schedule | Asking about office hours opens the instructor's timetable beside the chat (section 4). |
+| My degree | Student record and study plan merged into one page with planner, transcript and course cards (section 5). |
+| Calendar | Academic calendar redesigned, uses the real date (section 6). |
+| Campus map | The 3D map is a page instead of a pop-up, restyled to match (section 7). |
+| Model | DeepSeek is the default answering model (section 2). |
 
 ---
 
@@ -133,6 +152,24 @@ Files:
 
 ---
 
+## How to test
+
+Setup is the same as in `README.md`. After pulling:
+
+1. `cd frontend` then `npm install` (the lock file changed) and `npm run dev`.
+2. Start the backend: `uvicorn backend.main:app --reload`.
+3. Optional demo students: `python -m backend.seed_students` (accounts and passwords are in the README table).
+4. No new `.env` settings are required. `AUTH_MODE=password` (or no value) keeps the email/password sign-in. Remove `MS_MOCK` from your `.env` if you added it; it is no longer read.
+
+Things to try:
+- **Sign-in page**: switch between Sign in and Create account; submit empty or wrong fields; on Create account, type a student email (`U1234567@sharjah.ac.ae`) and a password to see the tick and the rule chips.
+- **Reset password**: "Forgot password?" → email → code and new password. With the backend in development mode, the code is shown on the page.
+- **Welcome animation**: sign in with a demo student; the chat builds itself in. Reloading the page doesn't replay it.
+- **Chat**: ask "What are Dr. … office hours?" to open the schedule panel; open My degree, Academic calendar and Campus map from the sidebar; Back and Esc return to the chat.
+- **Themes**: switch light/dark from the profile menu at the bottom of the sidebar.
+
+The frontend production build (`npx vite build`) passes.
+
 ## Not done yet / known limits
 
 - The real Microsoft app registration is not connected, so Microsoft sign-in does not work yet; the app uses the email/password login.
@@ -140,3 +177,4 @@ Files:
 - Elective lists per program are partly assumed (department code matching); official lists are still needed.
 - On phones the sidebar has to be collapsed by hand.
 - `LoginPage.jsx` and `MicrosoftLoginPage.jsx` (only shown with `AUTH_MODE=microsoft`) still use the older card design.
+- Leftovers from the original Vite starter (`src/main.ts`, `counter.ts`, `style.css`, `src/assets/*`, `public/icons.svg`, `public/favicon.svg`, `tsconfig.json`), the unused `FeedbackButtons` component and two unused logo images (`mosaed-logo-transparent.png`, `mosaed-mark-dark.png`) were there before this work and are left as they are; they can be removed in a separate clean-up.
