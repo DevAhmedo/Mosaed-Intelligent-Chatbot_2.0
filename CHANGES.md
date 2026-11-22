@@ -1,0 +1,121 @@
+# Changes
+
+Everything that changed on the `general-scope` branch since the commit
+"Connect 3D campus map; cleaner sources and greetings; hide roadmap for bachelor's students" (`6bc3a32`).
+
+The work is grouped by feature. Files are listed under the feature they belong to.
+
+---
+
+## 1. Sign-in with the university Microsoft account
+
+A second sign-in mode for university accounts, switched from the backend `.env`.
+
+- **`AUTH_MODE=microsoft`** shows a single "Continue with Microsoft" button and only accepts emails from `ALLOWED_EMAIL_DOMAIN` (default `sharjah.ac.ae`). `AUTH_MODE=password` (or no value) keeps the original email/password screens.
+- **`MS_MOCK=true`** uses a simulated Microsoft page. The real Microsoft app registration (`MS_TENANT_ID`, `MS_CLIENT_ID`) is not wired up yet.
+- **`AUTH_DEV_LOGIN=true`** keeps the email/password login reachable for the demo students, behind a link on the Microsoft page.
+- The landing page says "Sign in" and hides "Sign up" in Microsoft mode.
+
+Files:
+- `backend/services/microsoft_auth.py` (new): checks Microsoft ID tokens and the simulated sign-in.
+- `backend/routers/auth.py`: `GET /auth/config`, `POST /auth/microsoft`, `POST /auth/mock-microsoft`.
+- `frontend/src/pages/MicrosoftLoginPage.jsx` (new), `App.jsx`, `LoginPage.jsx`, `LandingPage.jsx`, `SignUpPage.jsx`, `AuthPage.module.css`, `LandingPage.module.css`.
+- `frontend/src/services/api.js`: `authConfig`, `mockMicrosoft`, `microsoftLogin`.
+- `.env.example`, `README.md`: the new settings are documented.
+
+## 2. Answering model
+
+- DeepSeek is now the default answering model (`LLM_PROVIDER`); Gemini and Groq remain options. Embeddings still always use Gemini.
+- `README.md` explains `LLM_PROVIDER`, `DEEPSEEK_API_KEY`, `DEEPSEEK_MODEL` and `GROQ_API_KEY`.
+- `backend/services/gemini_llm.py`: the comment now matches the default.
+
+## 3. App layout and chat redesign
+
+The whole chat screen was redesigned around one design language: Inter, black and white for most of the UI, the university green `#60B68F` for accents, floating glass panels, and light and dark themes.
+
+- **Sidebar** (`Sidebar.jsx/.module.css`, new `NavItem.jsx/.module.css`): one floating glass sidebar with New chat, Search chats (Ctrl K), a "Your studies" group (My degree, Thesis roadmap, Academic calendar, Campus map) and chat history. It collapses to an icon rail with tooltips. The old top bar (`Header.jsx/.module.css`) was removed.
+- **One icon set** (`components/icons.jsx`, new): Lucide-style outline icons used everywhere.
+- **Design tokens** (`index.css`): colours, glass, shadows and motion curves for both themes.
+- **Chat input** (`ChatInput.jsx/.module.css`): a two-row composer that grows up to 200 px.
+- **Chat window** (`ChatWindow.jsx/.module.css`): follows the answer while it types out, stops following when you scroll up, and starts again near the bottom.
+- **Answers** (`MessageBubble.jsx/.module.css`): action cards under an answer for the instructor's timetable and the places it mentions ("Show on the campus map"), a copy button, and only new messages animate in.
+- **Starter questions** under the input on an empty chat (`ChatPage.jsx/.module.css`).
+- Small style fixes: `FeedbackButtons.module.css`, `ThesisRoadmap.jsx/.module.css`.
+
+## 4. Instructor schedule panel
+
+Asking about an instructor's office hours or timetable opens their schedule beside the chat.
+
+- Shows office hours today ("In office hours now" / next office hours), each day's slots, a weekly grid of classes and office hours, and a button to show their office on the campus map.
+- Opens right away when the question names the instructor, otherwise once the answer does. Short follow-ups ("how about Manar?") keep the topic.
+- Files: `SchedulePanel.jsx/.module.css` (new), `utils/schedules.js` (new; reads the A9 and A11 office directories, campus time zone), `ChatPage.jsx`.
+
+## 5. "My degree" page (student record and study plan)
+
+"My record" and "Study plan" were merged into one sidebar item, **My degree**, which opens a full page in place of the chat (`#degree`). Back, Esc and the Chat button return to the chat as it was.
+
+- **Overview**: progress ring (passed and in-progress credit hours), on track / behind plan, CGPA, estimated graduation; a "Don't leave this for later" warning for bottleneck courses; this term's courses; next term's picks; the plan at a glance (counts that open the filtered list); record facts; quick questions for Mosaed.
+- **Study plan**: the plan as a map (prerequisite chains) or a list with filters.
+- **Next term**: a planner that suggests next term's courses (retakes, critical-path courses and courses that unlock the most first), with reasons, credit target and elective slots.
+- **Transcript**: CGPA summary, every term newest first with its GPA, the term in progress, failed courses marked with when they were retaken.
+- **Course card**: click any course for its status, grade, prerequisites, what it unlocks and why it matters.
+- A contextual "Ask" button sends a question about the current tab to the chat.
+- Accounts without a student record get the manual mode: pick a program and tick finished courses.
+
+Backend (`backend/services/student_records.py`):
+- `plan_view` returns every course's status, a summary and a next-term suggestion; `GET /students/me/plan` serves it (`backend/routers/students.py`).
+- Prerequisite chains: what each course unlocks, how many later courses depend on it and its chain depth.
+- Bottlenecks: overdue, critical-path and blocking courses.
+- Graduation estimate from the remaining credit hours and the longest prerequisite chain.
+- Elective slots are matched by department code, and numbered slots are grouped.
+- The chatbot's study-plan tool (`agent_service.py`) now also gets bottlenecks, the graduation estimate and the next-term suggestion.
+
+Data:
+- `data/study-plans/.../cci_bsc-computer-science_2021-22_study-plan_v1.json`: prerequisites for the new-student track, read from the flowchart; total credit hours 123.
+
+Frontend files: `pages/StudiesPage.jsx/.module.css`, `StudiesOverview`, `StudiesTranscript`, `PlanStanding`, `PlanList`, `NextTermPlanner`, `CourseCard` (each `.jsx` + `.module.css`) and `planText.js` (all new); `StudyPlanMap.jsx/.module.css` updated. `StudentRecord.jsx/.module.css` and `StudyPlanProgress.jsx/.module.css` were removed (merged into the page).
+
+## 6. Academic calendar
+
+Redesigned to match the site, in the same glass panel as the schedule panel.
+
+- Uses the real date (it used a fixed demo date before, so "Now" and "Next" were wrong).
+- Fall / Spring / Summer segmented control (arrow keys switch semesters); the current semester opens by default.
+- Dates grouped by month, opened at today; a date column with day number and weekday; multi-day events show "Until Thu 25 Mar · 11 days".
+- The next date shows a countdown ("In 9 days"); events happening now get a green highlight; past events turn grey.
+- Close button with an Esc hint; focus returns to the sidebar. Fits phone widths.
+- Copy fixes: "Midterm exams" and "Return of Academic Staff" made consistent; Summer dates sorted.
+- Files: `CalendarWidget.jsx/.module.css`.
+
+## 7. Campus map
+
+The 3D campus map is now a page in place of the chat (`#map`) instead of a pop-up window, and its interface uses the chatbot's design.
+
+Page (`pages/MapPage.jsx/.module.css`, new; `MapViewer.jsx/.module.css` removed):
+- The sidebar's Campus map item, "Show on map" buttons and the schedule panel open the page at the right building or room.
+- The map loads once and stays loaded, so returning is instant and keeps your place.
+- Esc closes things in order: search results, then directions, then the page. Back returns straight to the chat (moving the map to a place no longer adds browser history entries).
+- "Open in new tab" and "Chat" buttons in the top-right; on phones they become a slim bar with the title.
+- `utils/mapLinks.js`, `ChatPage.jsx`, `Sidebar.jsx`.
+
+Map itself (`frontend/public/campus-map/campus-map.html`):
+- Inter, the chatbot's colours, glass panels, black pill buttons and black selected level.
+- Follows the chatbot's light/dark theme; hides its own logo inside the chatbot.
+- A new Directions mark: a green start dot, a dotted path and a black end dot, like the route pins.
+- Office hours and the weekly timetable use coloured fills instead of side stripes.
+- Earlier map work in this range: building A11 floor plans and office directory (`A11-office-directory.json`, `A11-room-mapping.json`), OpenStreetMap surroundings (`surroundings.json`), gender-split washroom colours, room hover, a texture-loading fix for the iPhone app, and an updated model, building data and walking network (`model.json`, `data.json`, `nav.json`).
+
+## 8. Other
+
+- `frontend/package-lock.json`: dependency lock refresh.
+- `.env.example`: lists the sign-in and answering-model settings (values are placeholders).
+- `CHANGES.md`: this file.
+
+---
+
+## Not done yet / known limits
+
+- The real Microsoft app registration is not connected; Microsoft sign-in runs in simulated mode.
+- Student records are simulated demo data (`backend/seed_students.py`).
+- Elective lists per program are partly assumed (department code matching); official lists are still needed.
+- On phones the sidebar has to be collapsed by hand.

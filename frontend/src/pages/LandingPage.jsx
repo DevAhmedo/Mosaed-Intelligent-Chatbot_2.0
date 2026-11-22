@@ -7,7 +7,7 @@ const ArrowIcon = () => (
   </svg>
 );
 
-export default function LandingPage({ onLogin, onSignup }) {
+export default function LandingPage({ onLogin, onSignup, microsoft = false }) {
   useEffect(() => {
     const handleKeyDown = (e) => { if (e.key === "Enter") onLogin(); };
     window.addEventListener("keydown", handleKeyDown);
@@ -53,15 +53,15 @@ export default function LandingPage({ onLogin, onSignup }) {
             onMouseMove={trackMouse}
             onClick={onLogin}
           >
-            Log in <ArrowIcon />
+            {microsoft ? "Sign in" : "Log in"} <ArrowIcon />
           </button>
-          <button
+          {!microsoft && <button
             className={`${styles.btn} ${styles.ghost}`}
             onMouseMove={trackMouse}
             onClick={onSignup}
           >
             Sign up <ArrowIcon />
-          </button>
+          </button>}
         </div>
       </main>
 

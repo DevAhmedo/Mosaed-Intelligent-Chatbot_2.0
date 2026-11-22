@@ -16,7 +16,7 @@ export default function SignUpPage({ onSwitch }) {
     else if (form.name.trim().length < 2) e.name = "Name must be at least 2 characters.";
 
     if (!form.email.trim()) e.email = "Email is required.";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Enter a valid email.";
+    else if (!/^u\d{7}@sharjah\.ac\.ae$/i.test(form.email.trim())) e.email = "Use your student email: StudentID@sharjah.ac.ae";
 
     if (!form.password) e.password = "Password is required.";
     else if (form.password.length < 8) e.password = "Password must be at least 8 characters.";
@@ -78,7 +78,7 @@ export default function SignUpPage({ onSwitch }) {
             <input
               className={`${styles.input} ${errors.email ? styles.inputError : ""}`}
               type="email"
-              placeholder="you@example.com"
+              placeholder="StudentID@sharjah.ac.ae"
               value={form.email}
               onChange={handleChange("email")}
               autoComplete="email"

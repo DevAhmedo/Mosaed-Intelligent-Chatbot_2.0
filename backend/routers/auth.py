@@ -13,13 +13,75 @@ from backend.database.connection import get_db
 from backend.database.models import User
 from backend.database.schemas import SignUpRequest, LoginRequest, TokenResponse, UserOut
 from backend.services.auth_service import hash_password, verify_password, create_access_token, decode_token
+from backend.services import microsoft_auth as ms
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 _bearer = HTTPBearer()
 
 
+def _password_signup_allowed():
+    if ms.microsoft_enabled():
+        raise HTTPException(status_code=403, detail="Sign up is done with your university Microsoft account.")
+
+
+def _password_login_allowed():
+    if ms.microsoft_enabled() and not ms.AUTH_DEV_LOGIN:
+        raise HTTPException(status_code=403, detail="Sign in with your university Microsoft account.")
+
+
+@router.get("/config")
+async def auth_config():
+    """Tells the frontend which sign-in screen to show."""
+    return {
+        "mode": ms.AUTH_MODE,
+        "allowed_domain": ms.ALLOWED_EMAIL_DOMAIN,
+        "mock": ms.mock_enabled(),
+        "dev_login": ms.AUTH_DEV_LOGIN,
+    }
+
+
+class MockMicrosoftRequest(BaseModel):
+    name: str
+    email: str
+
+
+@router.post("/mock-microsoft")
+async def mock_microsoft(payload: MockMicrosoftRequest):
+    """Stand-in for the Microsoft sign-in page. Disabled unless AUTH_MODE=microsoft and MS_MOCK=true."""
+    if not ms.mock_enabled():
+        raise HTTPException(status_code=404, detail="Not found.")
+    return {"id_token": ms.issue_mock_id_token(payload.name, payload.email)}
+
+
+class MicrosoftLoginRequest(BaseModel):
+    id_token: str
+
+
+@router.post("/microsoft", response_model=TokenResponse)
+async def microsoft_login(payload: MicrosoftLoginRequest, db: AsyncSession = Depends(get_db)):
+    if not ms.microsoft_enabled():
+        raise HTTPException(status_code=404, detail="Not found.")
+    info = ms.verify_id_token(payload.id_token)
+
+    result = await db.execute(select(User).where(User.email == info["email"]))
+    user = result.scalar_one_or_none()
+    if not user:  # first sign-in creates the account, no separate sign-up
+        user = User(id=str(uuid.uuid4()), name=info["name"], email=info["email"], password_hash=None)
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+
+    return TokenResponse(
+        access_token=create_access_token(user.id, user.email),
+        user=UserOut.model_validate(user),
+    )
+
+
 @router.post("/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 async def signup(payload: SignUpRequest, db: AsyncSession = Depends(get_db)):
+    _password_signup_allowed()
+    if not ms.is_student_email(payload.email):
+        raise HTTPException(status_code=422, detail=ms.STUDENT_EMAIL_MESSAGE)
     result = await db.execute(select(User).where(User.email == payload.email))
     if result.scalar_one_or_none():
         raise HTTPException(status_code=409, detail="An account with this email already exists.")
@@ -42,6 +104,7 @@ async def signup(payload: SignUpRequest, db: AsyncSession = Depends(get_db)):
 
 @router.post("/login", response_model=TokenResponse)
 async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
+    _password_login_allowed()
     result = await db.execute(select(User).where(User.email == payload.email))
     user = result.scalar_one_or_none()
 
@@ -66,6 +129,7 @@ class ResetPasswordRequest(BaseModel):
 
 @router.post("/forgot-password")
 async def forgot_password(payload: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
+    _password_signup_allowed()
     result = await db.execute(select(User).where(User.email == payload.email))
     user = result.scalar_one_or_none()
 
@@ -86,6 +150,7 @@ async def forgot_password(payload: ForgotPasswordRequest, db: AsyncSession = Dep
 
 @router.post("/reset-password")
 async def reset_password(payload: ResetPasswordRequest, db: AsyncSession = Depends(get_db)):
+    _password_signup_allowed()
     result = await db.execute(select(User).where(User.email == payload.email))
     user = result.scalar_one_or_none()
 

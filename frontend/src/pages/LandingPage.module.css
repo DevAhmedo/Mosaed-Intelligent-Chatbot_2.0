@@ -25,7 +25,7 @@
   width: 900px;
   height: 900px;
   border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(46,139,107,.18), rgba(46,139,107,0) 70%);
+  background: radial-gradient(closest-side, rgba(96,182,143,.18), rgba(96,182,143,0) 70%);
   filter: blur(20px);
   pointer-events: none;
   z-index: 0;
@@ -36,7 +36,7 @@
 .orbB {
   width: 600px;
   height: 600px;
-  background: radial-gradient(closest-side, rgba(46,139,107,.10), rgba(46,139,107,0) 70%);
+  background: radial-gradient(closest-side, rgba(96,182,143,.10), rgba(96,182,143,0) 70%);
   animation: drift2 28s ease-in-out infinite alternate;
 }
 
@@ -142,7 +142,7 @@
   right: -10%;
   top: 0;
   bottom: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(46,139,107,.18) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(96,182,143,.18) 50%, transparent 100%);
   transform: translateX(-100%);
   animation: sweep 1.6s 1s cubic-bezier(.2,.7,.2,1) forwards;
   pointer-events: none;
@@ -223,7 +223,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(180px circle at var(--hx, 50%) var(--hy, 50%), rgba(46,139,107,.55), transparent 60%);
+  background: radial-gradient(180px circle at var(--hx, 50%) var(--hy, 50%), rgba(96,182,143,.55), transparent 60%);
   opacity: 0;
   transition: opacity .3s;
   pointer-events: none;
@@ -252,7 +252,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(160px circle at var(--hx, 50%) var(--hy, 50%), rgba(46,139,107,.12), transparent 60%);
+  background: radial-gradient(160px circle at var(--hx, 50%) var(--hy, 50%), rgba(96,182,143,.12), transparent 60%);
   opacity: 0;
   transition: opacity .3s;
   pointer-events: none;

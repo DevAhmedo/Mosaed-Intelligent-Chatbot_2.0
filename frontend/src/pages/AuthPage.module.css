@@ -44,7 +44,7 @@
   height: 8px;
   border-radius: 50%;
   background: var(--green);
-  box-shadow: 0 0 0 4px rgba(46,139,107,.15);
+  box-shadow: 0 0 0 4px rgba(96,182,143,.15);
   flex-shrink: 0;
 }
 
@@ -110,7 +110,7 @@
 
 .input:focus {
   border-color: var(--green);
-  box-shadow: 0 0 0 3px rgba(46,139,107,.12);
+  box-shadow: 0 0 0 3px rgba(96,182,143,.12);
 }
 
 .inputError {
@@ -223,7 +223,7 @@
 
 .devCodeBox {
   background: var(--green-soft);
-  border: 1px solid rgba(46,139,107,.3);
+  border: 1px solid rgba(96,182,143,.3);
   border-radius: 8px;
   padding: 0.65rem 1rem;
   font-size: 0.85rem;
